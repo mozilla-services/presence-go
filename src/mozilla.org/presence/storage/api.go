@@ -26,11 +26,40 @@ type LiveNotification struct {
 }
 
 type Storage interface {
-	// MCF Methods
+	//  -- MCF Methods --
+
+	// Verify a list of AppUid's for a given FxID
 	VerifyAppUidList(fxid string, appuids AppUidList) (valid bool, err error)
-	LinkUuids(hostname net.IP, uids UidList) error
+
+	// Link the list of uids to the MCF's hostname
+	LinkUids(hostname net.IP, uids UidList) error
+
+	// Store a Uid for an AppId for a given FxID
+	StoreUidForUser(fxid string, uid, aid uuid.UUID) (err error)
+
 	// Unlink Uuids from this host if the user drops off
-	// If the user was disconnected suddenly, indicate their zombie status
-	UnlinkUuids(hostname net.IP, uids UidList, zombie bool) error
+	// If the user was disconnected suddenly, zombie flag indicates the
+	// uid should be added to the zombie queue.
+	// (Also used by Zombie Killer to evict a dead Uid)
+	UnlinkUids(hostname net.IP, uids UidList, zombie bool) error
+
+	// Retrieve missed LiveNotifications for a batch of uids
 	GetLiveNotifications(uids UidList) ([]LiveNotification, error)
+
+	// -- Postmaster Methods --
+
+	// Retrieve the hostname for the UID
+	// (Also used by Zombie Killer to verify Uid still has no hostname)
+	HostnameForUid(uid uuid.UUID) (hostname net.IP, err error)
+
+	// Store a message for a Uid
+	StoreLiveNotification(uid uuid.UUID, notif LiveNotification) (err error)
+
+	// -- Zombie Killer Methods --
+
+	// Retrieve a batch of Uid's from the zombie queue
+	GetDeadUids(amount int) (uids []uuid.UUID, err error)
+
+	// Remove Uid from Zombie queue
+	RemoveDeadUid(uid uuid.UUID)
 }
