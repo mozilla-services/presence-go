@@ -28,20 +28,20 @@ type LiveNotification struct {
 type Storage interface {
 	//  -- MCF Methods --
 
-	// Verify a list of AppUid's for a given FxID
-	VerifyAppUidList(fxid string, appuids AppUidList) (valid bool, err error)
+	// Verify a list of uid's for a given FxID
+	VerifyUidList(fxid string, uids UidList) (valid bool, err error)
 
 	// Link the list of uids to the MCF's hostname
 	LinkUids(hostname net.IP, uids UidList) error
 
-	// Store a Uid for an AppId for a given FxID
-	StoreUidForUser(fxid string, uid, aid uuid.UUID) (err error)
+	// Store a new Uid for a given FxID
+	StoreUidForUser(fxid string, uid uuid.UUID) (err error)
 
 	// Unlink Uuids from this host if the user drops off
 	// If the user was disconnected suddenly, zombie flag indicates the
 	// uid should be added to the zombie queue.
 	// (Also used by Zombie Killer to evict a dead Uid)
-	UnlinkUids(hostname net.IP, uids UidList, zombie bool) error
+	UnlinkUid(hostname net.IP, uid uuid.UUID, version int, zombie bool) error
 
 	// Retrieve missed LiveNotifications for a batch of uids
 	GetLiveNotifications(uids UidList) ([]LiveNotification, error)
@@ -50,7 +50,7 @@ type Storage interface {
 
 	// Retrieve the hostname for the UID
 	// (Also used by Zombie Killer to verify Uid still has no hostname)
-	HostnameForUid(uid uuid.UUID) (hostname net.IP, err error)
+	HostnameForUid(uid uuid.UUID) (hostname net.IP, version int, err error)
 
 	// Store a message for a Uid
 	StoreLiveNotification(uid uuid.UUID, notif LiveNotification) (err error)
