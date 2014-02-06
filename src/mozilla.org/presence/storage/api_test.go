@@ -2,7 +2,6 @@ package storage
 
 import (
 	"code.google.com/p/go-uuid/uuid"
-	"errors"
 	. "launchpad.net/gocheck"
 	"net"
 	"testing"
@@ -22,7 +21,7 @@ type MemoryStorage struct {
 }
 
 func NewMemoryStorage() *MemoryStorage {
-	var apps UserAppList = make(map[string]AppUidList)
+	apps := make(map[string]AppUidList)
 	return &MemoryStorage{apps}
 }
 
@@ -30,24 +29,21 @@ func sameAppUid(app1, app2 AppUid) bool {
 	return uuid.Equal(app1.AppId, app2.AppId) && uuid.Equal(app1.Uid, app2.Uid)
 }
 
-func (s *MemoryStorage) VerifyUidList(fxid string, appuids AppUidList) (valid bool, err error) {
-	var exists bool
-	for _, element := range appuids {
-
-		exists = false
-
-		for _, existing := range s.userApps[fxid] {
-			if sameAppUid(element, existing) {
-				exists = true
-				break
-			}
-		}
-
-		if !exists {
-			return false, errors.New("meh")
+func contains(applist AppUidList, element AppUid) bool {
+	for _, existing := range applist {
+		if sameAppUid(element, existing) {
+			return true
 		}
 	}
+	return false
+}
 
+func (s *MemoryStorage) VerifyUidList(fxid string, appuids AppUidList) (valid bool, err error) {
+	for _, element := range appuids {
+		if !contains(s.userApps[fxid], element) {
+			return false, nil
+		}
+	}
 	return true, nil
 }
 
@@ -101,19 +97,19 @@ func (s *MemoryStorage) UsersWithLiveNotifications() (uids UidList, err error) {
 
 func (s *MySuite) TestStorageInterface(c *C) {
 	c.Check(42, Equals, 42)
-	var memStorage = NewMemoryStorage()
-	var storage = Storage(memStorage)
+	memStorage := NewMemoryStorage()
+	storage := Storage(memStorage)
 
-	var fxid string = "tarek"
-	var uid, aid uuid.UUID = uuid.NewUUID(), uuid.NewUUID()
-	var appuid AppUid = AppUid{uid, aid}
+	fxid := "tarek"
+	uid, aid := uuid.NewUUID(), uuid.NewUUID()
+	appuid := AppUid{uid, aid}
 
 	// storing and uid for a given user id and app id
 	storage.StoreUidForUser(fxid, appuid)
 
 	// verify that we have that uid stored in memory
-	var appuids AppUidList = []AppUid{AppUid{uid, aid}}
-	var result, _ = storage.VerifyUidList(fxid, appuids)
+	appuids := []AppUid{AppUid{uid, aid}}
+	result, _ := storage.VerifyUidList(fxid, appuids)
 
 	c.Check(result, Equals, true)
 }
