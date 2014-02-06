@@ -12,9 +12,13 @@ type AppUid struct {
 }
 
 type AppUidList []AppUid
-type UidList []uuid.UUID
+type UserId uuid.UUID
+type MessageId uuid.UUID
+type UidList []UserId
 
 type LiveNotification struct {
+	// Unique ID for this LiveNotification
+	MessageID uuid.UUID
 	// AppID this message belongs to on the device
 	AppId uuid.UUID
 	// Passed to the application's LiveNotification handler
@@ -28,23 +32,29 @@ type LiveNotification struct {
 type Storage interface {
 	//  -- MCF Methods --
 
-	// Verify a list of uid's for a given FxID
-	VerifyUidList(fxid string, uids UidList) (valid bool, err error)
+	// Verify a list of uid/appid's for a given FxID
+	// The mapping is stored to ensure all UID's for an AppID can be
+	// revoked if necessary.
+	VerifyUidList(fxid string, appUids AppUidList) (valid bool, err error)
 
-	// Link the list of uids to the MCF's hostname
+	// Link the list of uids/aids to the MCF's hostname
 	LinkUids(hostname net.IP, uids UidList) error
 
-	// Store a new Uid for a given FxID
-	StoreUidForUser(fxid string, uid uuid.UUID) (err error)
+	// Store a new Uid/Appid for a given FxID
+	StoreUidForUser(fxid string, appUid AppUid) error
 
 	// Unlink Uuids from this host if the user drops off
 	// If the user was disconnected suddenly, zombie flag indicates the
-	// uid should be added to the zombie queue.
+	// uid should be added to the zombie queue *and* unlinked.
+	// Version must match the version returned by HostnameForUid.
 	// (Also used by Zombie Killer to evict a dead Uid)
-	UnlinkUid(hostname net.IP, uid uuid.UUID, version int, zombie bool) error
+	UnlinkUid(hostname net.IP, uid UserId, version int, zombie bool) error
 
 	// Retrieve missed LiveNotifications for a batch of uids
-	GetLiveNotifications(uids UidList) ([]LiveNotification, error)
+	GetLiveNotifications(uids UidList) (notifs []LiveNotification, err error)
+
+	// Delete live notifications
+	DeleteLiveNotifications(uid UserId, messageIds []MessageId)
 
 	// -- Postmaster Methods --
 
@@ -62,4 +72,10 @@ type Storage interface {
 
 	// Remove Uid from Zombie queue
 	RemoveDeadUid(uid uuid.UUID)
+
+	// Get a list of userId's that have LiveNotifications waiting
+	UsersWithLiveNotifications() (uids UidList, err error)
+
+	// Get expired LiveNotifications
+	GetOldLiveNotifications(uid UserId) (notifs []LiveNotification, err error)
 }
