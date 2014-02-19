@@ -3,6 +3,7 @@ package storage
 import (
 	"code.google.com/p/go-uuid/uuid"
 	. "launchpad.net/gocheck"
+	. "mozilla.org/presence"
 	"net"
 	"testing"
 )
