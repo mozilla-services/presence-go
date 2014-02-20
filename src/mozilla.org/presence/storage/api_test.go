@@ -57,43 +57,12 @@ func (s *MemoryStorage) StoreUidForUser(fxid string, appUid AppUid) (err error) 
 	return nil
 }
 
-func (s *MemoryStorage) UnlinkUids(hostname net.IP, uids UidList, zombie bool) error {
-	return nil
-}
-
 func (s *MemoryStorage) UnlinkUid(hostname net.IP, uid UserId, version int, zombie bool) error {
 	return nil
 }
 
-func (s *MemoryStorage) GetLiveNotifications(uids UidList) ([]LiveNotification, error) {
-	return nil, nil
-}
-
 func (s *MemoryStorage) HostnameForUid(uid uuid.UUID) (hostname net.IP, version int, err error) {
 	return nil, -1, nil
-}
-
-func (s *MemoryStorage) StoreLiveNotification(uid uuid.UUID, notif LiveNotification) (err error) {
-	return nil
-}
-
-func (s *MemoryStorage) GetDeadUids(amount int) (uids []uuid.UUID, err error) {
-	return
-}
-
-func (s *MemoryStorage) RemoveDeadUid(uid uuid.UUID) {
-	return
-}
-
-func (s *MemoryStorage) DeleteLiveNotifications(uid UserId, messageIds []MessageId) {
-}
-
-func (s *MemoryStorage) GetOldLiveNotifications(uid UserId) (notifs []LiveNotification, err error) {
-	return
-}
-
-func (s *MemoryStorage) UsersWithLiveNotifications() (uids UidList, err error) {
-	return
 }
 
 func (s *MySuite) TestStorageInterface(c *C) {
