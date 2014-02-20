@@ -23,13 +23,13 @@ type QueueRetry struct {
 type Queue interface {
 	//  -- MCF Methods --
 
-	// Enqueue a presence stanza for an app
-	EnqueuePresenceStanza(stanza PresenceStanza, appId uuid.UUID) error
+	// Returns a channel to send presence stanzas on for a given app
+	PresenceDeliveryQueue(appId uuid.UUID) (chan<- *PresenceStanza, error)
 
 	// -- Postmaster Methods --
 
 	// Drain a queue of presence stanza's, retrieves N stanzas
-	DrainPresenceQueue(appId uuid.UUID) (stanzas []PresenceStanza, err error)
+	PresenceConsumerQueue(appId uuid.UUID) (<-chan *PresenceStanza, error)
 
 	// Confirm handling of presence stanzas
 	ConfirmPresenceStanzas(stanzaIds []uuid.UUID) error
